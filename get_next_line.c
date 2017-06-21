@@ -6,40 +6,53 @@
 /*   By: kcoetzee <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/16 15:00:04 by kcoetzee          #+#    #+#             */
-/*   Updated: 2017/06/19 11:52:34 by kcoetzee         ###   ########.fr       */
+/*   Updated: 2017/06/21 12:44:49 by kcoetzee         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #define BUFF_SIZE 32
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 int	get_next_line(const int fd, char **line)
 {
+	static int count;
+	static char buffer[BUFF_SIZE + 1];
 	int ret;
 	int i;
 	int line_count;
-	char buffer[BUFF_SIZE + 1];
-	if (fd == -1)
-		return (-1);
-	
-	// Get the full size of the buffer
-	while (ret = read(fd, buf, BUF_SIZE))
-	{
-		buffer[ret] = '\0';
-		
-	}
+	int line_len;
 
-	// Actually proccesing the text
+	count++;
 	i = 0;
-	while (ret = read(fd, buf, BUF_SIZE))
+	line_len = 0;
+	line_count = 0;
+	printf(" ================= GET_NEXT_LINE() ========================\n");
+	if (count == 1)
+		ret = read(fd, buffer, BUFF_SIZE);
+	while (buffer[i])
 	{
-		buffer[ret] = '\0';
-		while (buffer[i] != '\n') 
-		{
-
+		if (buffer[i] == '\n')
+		{	
+			line_count++;
+			printf("Line count is %d\n", line_count);
+			if (line_count == count)
+			{
+				*line = (char*)malloc(line_len * sizeof(char));
+				strncpy(*line, &buffer[i - line_len], line_len);
+				printf("Test: i: %d\n", i);
+				printf("String copied: %s\n", *line);
+				return (0);	
+			}
+			line_len = 0;
 		}
-		// Print the current buffer
-	}	
+		i++;
+		line_len++;
+	}
+	//printf("Read result: %d\n", ret);
+	//printf("Buffer contents: %s\n", buffer);	
 }
 
 
@@ -52,12 +65,17 @@ int	main(void)
 	int fd;
 	int ret;
 	char buffer[BUFF_SIZE + 1];
+	char *line;
 
 	fd = open("test.txt", O_RDONLY | O_CREAT);
 	if (fd)
 	{
-		ret = read(fd, buffer, BUFF_SIZE);
-		printf("%s\n", buffer);
+		//ret = read(fd, buffer, BUFF_SIZE);
+		//printf("%s\n", buffer);
+		get_next_line(fd, &line);
+		get_next_line(fd, &line);
+		get_next_line(fd, &line);
+	
 	}
 	else
 	{
