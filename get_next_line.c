@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#define BUFF_SIZE 10
+#define BUFF_SIZE 32
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +33,7 @@ void    init_buffer(t_buffer *buffer)
 
 void    resize_buffer(t_buffer *buffer)
 {
-    printf(".....   Resizing buffer\n");
+    //printf(".....   Resizing buffer\n");
     // Create temporary array holding the current buffer size
     char *temp;
     
@@ -42,9 +42,9 @@ void    resize_buffer(t_buffer *buffer)
         printf("----- Memory allcoation of %d chars failed\n", buffer->size);
     strcpy(temp, buffer->stream);
     // Free the memory being used by buffer
-    printf("Attempting to free buffer with the following contents: %s\n", buffer->stream);
+    //printf("Attempting to free buffer with the following contents: %s\n", buffer->stream);
     free(buffer->stream);
-    printf("got here\n");
+    //printf("got here\n");
     // Allocate double the size
     buffer->size += BUFF_SIZE;
     buffer->stream = (char*)malloc(sizeof(char) * (buffer->size + 1));
@@ -60,7 +60,7 @@ int	get_next_line(const int fd, char **line)
     int found;
     int should_read;
 
-    printf("\n+++ GET_NEXT_LINE ++++++++++++++++++++++++++++++++++++++++++++++++ \n\n");
+    //printf("\n+++ GET_NEXT_LINE ++++++++++++++++++++++++++++++++++++++++++++++++ \n\n");
     // Init
     found = 0;
     if (buffer.size == 0)
@@ -75,9 +75,13 @@ int	get_next_line(const int fd, char **line)
         if (should_read)
         {
             should_read = 0;
-            printf(".....   Reading data into buffer object\n");
+            //printf(".....   Reading data into buffer object\n");
             ret = read(fd, &(buffer.stream[buffer.end]), BUFF_SIZE);
-            printf("............. buffer contents ...........\n%s\n..................................... \n", buffer.stream);
+            if (ret == 0)
+            {
+                return (0);
+            }
+            //printf("............. buffer contents ...........\n%s\n..................................... \n", buffer.stream);
         }
 
         //printf("============= BUFFER CONTENTS ============== \n%s\n========================================\n", buffer.stream);
@@ -85,7 +89,7 @@ int	get_next_line(const int fd, char **line)
         i = buffer.start;
         while (buffer.stream[i])
         {
-            printf("i (%d)\n", i);
+            //printf("i (%d)\n", i);
             if (buffer.stream[i] == '\n')
             {
                 buffer.end = i;
@@ -125,16 +129,13 @@ int	main(void)
 	fd = open("test.txt", O_RDONLY | O_CREAT);
 	if (fd)
 	{
-		//ret = read(fd, buffer, BUFF_SIZE);
-		//printf("%s\n", buffer);
-		get_next_line(fd, &line);
-        //free(line);
-        get_next_line(fd, &line);
-       //free(line);
-        get_next_line(fd, &line);
-        //free(line);
-        get_next_line(fd, &line);
-        //free(line);
+        int i = 0;
+		while(get_next_line(fd, &line))
+        {
+            i++;
+            printf("%s", line);
+        }
+        printf("Executed: %d times\n", i);
 	}
 	else
 	{
