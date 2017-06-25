@@ -6,11 +6,11 @@
 /*   By: kcoetzee <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/16 15:00:04 by kcoetzee          #+#    #+#             */
-/*   Updated: 2017/06/21 12:44:49 by kcoetzee         ###   ########.fr       */
+/*   Updated: 2017/06/25 15:59:35 by kcoetzee         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#define BUFF_SIZE 32
+#define BUFF_SIZE 20
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +28,8 @@ void    init_buffer(t_buffer *buffer)
 {
     buffer->size = BUFF_SIZE;
     buffer->stream = (char*)malloc(sizeof(char) * (buffer->size + 1));
-    //buffer->end = buffer->size - 1;
+    buffer->end = 0;
+	buffer->start = 0;
 }
 
 void    resize_buffer(t_buffer *buffer)
@@ -36,20 +37,26 @@ void    resize_buffer(t_buffer *buffer)
     //printf(".....   Resizing buffer\n");
     // Create temporary array holding the current buffer size
     char *temp;
-    
-    temp = (char*)malloc(sizeof(char) * (buffer->size + 1));
-    if (temp == NULL)
-        printf("----- Memory allcoation of %d chars failed\n", buffer->size);
-    strcpy(temp, buffer->stream);
-    // Free the memory being used by buffer
+   	int temp_size;
+
+    temp = (char*)malloc(sizeof(char) * (buffer->size + 2));
+    buffer->stream[buffer->size] = '\0';
+	//printf("----- buffer: %s\n", buffer->stream);
+	strcpy(temp, buffer->stream);
+	// Free the memory being used by buffer
     //printf("Attempting to free buffer with the following contents: %s\n", buffer->stream);
-    free(buffer->stream);
+    
+	//printf(".... got to after copy: %s \n", temp);
+	free(buffer->stream);
+	buffer->stream = NULL;
     //printf("got here\n");
     // Allocate double the size
     buffer->size += BUFF_SIZE;
     buffer->stream = (char*)malloc(sizeof(char) * (buffer->size + 1));
     strcpy(buffer->stream, temp);
-    free(temp);
+    //printf(" ..... buffer contents:\n%s\n ++++ ++++ ++++ +++ \n", buffer->stream);
+	free(temp);
+	temp = NULL;
 }
 
 int	get_next_line(const int fd, char **line)
@@ -63,8 +70,10 @@ int	get_next_line(const int fd, char **line)
     //printf("\n+++ GET_NEXT_LINE ++++++++++++++++++++++++++++++++++++++++++++++++ \n\n");
     // Init
     found = 0;
+	should_read = 0;
     if (buffer.size == 0)
     {
+		//printf("..... init buffer \n");
         init_buffer(&buffer);
         should_read = 1;
     }
@@ -75,41 +84,44 @@ int	get_next_line(const int fd, char **line)
         if (should_read)
         {
             should_read = 0;
-            //printf(".....   Reading data into buffer object\n");
-            ret = read(fd, &(buffer.stream[buffer.end]), BUFF_SIZE);
-            if (ret == 0)
+
+			ret = read(fd, &(buffer.stream[buffer.end]), BUFF_SIZE); 
+			buffer.stream[buffer.size] = '\0';
+			if (ret == 0)
             {
                 return (0);
             }
-            //printf("............. buffer contents ...........\n%s\n..................................... \n", buffer.stream);
         }
 
-        //printf("============= BUFFER CONTENTS ============== \n%s\n========================================\n", buffer.stream);
+        //printf("========= BUFFER CONTENTS ========== \n%s\n================================\n", buffer.stream);
         // Iterate over the buffer
         i = buffer.start;
         while (buffer.stream[i])
         {
-            //printf("i (%d)\n", i);
+            // printf("i (%d) (%c)\n", i, buffer.stream[i]);
             if (buffer.stream[i] == '\n')
-            {
-                buffer.end = i;
+            {	
+				//printf(".....   buffer.start: %c, %d\n", buffer.stream[buffer.start], buffer.start);	
+                //printf(".....   buffer.end: %c, %d\n", buffer.stream[buffer.end], buffer.end);
+
                 *line = (char*)malloc(sizeof(char) * (buffer.end - buffer.start + 1));
-                strncpy(*line, &buffer.stream[buffer.start], buffer.end - buffer.start);
-                buffer.start = buffer.end + 1;
-                printf(".....   line: %s\n", *line);
+                //strncpy(*line, &buffer.stream[buffer.start], buffer.end - buffer.start + 1);
+				strcpy(*line, &buffer.stream[buffer.start]);
+				*(*line + buffer.end - buffer.start) = '\0';
+				buffer.start = buffer.end + 1;
                 return (1);
             }
             i++;
+			buffer.end = i;
         }
 
         // A new line character has not been found. Resize the buffer.
         //printf("buffer.start = %d\n", buffer.start);
         //printf("buffer.end = %d\n", buffer.end);
-        //printf("i: %d\n", i);
-        buffer.end = buffer.size;
+        //buffer.end = buffer.size;
         should_read = 1;
         resize_buffer(&buffer);
-    }
+	}
     printf(".....   Did not return.\n");
 }
 
@@ -133,9 +145,11 @@ int	main(void)
 		while(get_next_line(fd, &line))
         {
             i++;
-            printf("%s", line);
+            printf("GET_NEXT_LINE OUTPUT: %s\n", line);
+			free(line);
         }
-        printf("Executed: %d times\n", i);
+		close(fd);
+        //printf("Executed: %d times\n", i);
 	}
 	else
 	{
