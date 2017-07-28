@@ -21,7 +21,7 @@ int		get_next_line(const int fd, char **line)
 	{
 
 		temp_buffer[ret] = '\0';
-		printf("read %d characters. \n", ret);
+		//printf("read %d characters. \n", ret);
 		push_to_buffer(&buffer, temp_buffer, ret);
 		if (ft_strchr(temp_buffer, '\n'))
 			break;
@@ -43,10 +43,10 @@ int		get_next_line(const int fd, char **line)
 			cpy_buffer = (char*)malloc(sizeof(char) * buffer.size);
 			ft_strcpy(cpy_buffer, &(buffer.data[i + 1]));
 			flush_buffer(&buffer);	
-			printf("pushing the leftovers.\n");
+			//printf("pushing the leftovers.\n");
 			push_to_buffer(&buffer, cpy_buffer, ft_strlen(cpy_buffer));
 			free(cpy_buffer);
-			printf("returning line: \"%s\"\n", *line);
+			//printf("returning line: \"%s\"\n", *line);
 			return (1);
 		}
 		i++;
@@ -57,7 +57,7 @@ int		get_next_line(const int fd, char **line)
 
 void	flush_buffer(t_buffer *buffer)
 {
-	printf("flushing the buffer.\n");
+	//printf("flushing the buffer.\n");
 	ft_bzero(buffer->data, buffer->size);
 	free(buffer->data);
 	buffer->size = 0;
@@ -65,11 +65,11 @@ void	flush_buffer(t_buffer *buffer)
 
 void	push_to_buffer(t_buffer *buffer, char *new_buffer, int buff_size)
 {
-	printf("pushing ...\"%s\" to buffer. \n", new_buffer);
+	//printf("pushing ...\"%s\" to buffer. \n", new_buffer);
 	// =========================//
 	resize_buffer(buffer, buff_size);
 	ft_strncat(buffer->data, new_buffer, buff_size);
-	printf ("buffer contents are now: \"%s\"\n", buffer->data);
+	//printf ("buffer contents are now: \"%s\"\n", buffer->data);
 }
 
 
@@ -109,11 +109,10 @@ int		main(int argc, char **argv)
 		{
 			if (line != NULL)
 			{
-				printf(C_RED "+++ get_next_line() +++ \n%s\n\n" C_RESET, line);
+				printf(C_RED "%s\n" C_RESET, line);
 				free(line);
 			}
 		}
-		printf("closing file.\n");
 		close(fd);
 	}
 	else
