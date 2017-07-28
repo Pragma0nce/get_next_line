@@ -6,10 +6,18 @@ int		get_next_line(const int fd, char **line)
 	int		ret;
 	int		i;
 	static	t_buffer buffer;
-	char	temp_buffer[BUFF_SIZE + 1];
+	//char	temp_buffer[BUFF_SIZE + 1];
+	char	*temp_buffer;
 	char	*cpy_buffer;
 
-	while (ret = read(fd, &temp_buffer, BUFF_SIZE) )
+	if (BUFF_SIZE > SSIZE_MAX || BUFF_SIZE < 1)
+	{
+		printf("illegal size\n");
+		return (-1);
+	}
+	
+	temp_buffer = (char*)malloc(sizeof(char) * (BUFF_SIZE + 1));
+	while (ret = read(fd, temp_buffer, BUFF_SIZE) )
 	{
 
 		temp_buffer[ret] = '\0';
@@ -19,6 +27,7 @@ int		get_next_line(const int fd, char **line)
 			break;
 	}
 
+	free(temp_buffer);
 	// Check if the buffer contains a \n
 	i = 0;
 	while (buffer.data[i])
@@ -91,14 +100,18 @@ void	resize_buffer(t_buffer *buffer, int size)
 int		main(int argc, char **argv)
 {
 	char *line;
+	line = NULL;
+	int test = 0;
 	int fd = open("test.txt", O_RDONLY | O_CREAT);
 	if (fd)
 	{
-		int i = 0;
-		while (get_next_line(fd, &line))
+		while (get_next_line(fd, &line) == 1)
 		{
-			printf(C_RED "+++ get_next_line() +++ \n%s\n\n" C_RESET, line);
-			free(line);
+			if (line != NULL)
+			{
+				printf(C_RED "+++ get_next_line() +++ \n%s\n\n" C_RESET, line);
+				free(line);
+			}
 		}
 		printf("closing file.\n");
 		close(fd);

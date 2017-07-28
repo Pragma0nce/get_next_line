@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <sys/stat.h>
 
-#define BUFF_SIZE 1000000
+#define BUFF_SIZE 1024
 
 #define	ft_strchr	strchr
 #define ft_strncpy	strncpy
