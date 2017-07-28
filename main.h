@@ -8,13 +8,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#define BUFF_SIZE 400
+#define BUFF_SIZE 1000000
 
 #define	ft_strchr	strchr
 #define ft_strncpy	strncpy
 #define	ft_strncat	strncat
 #define	ft_strcpy	strcpy
 #define	ft_strlen	strlen
+#define	ft_bzero	bzero
+
 #define C_RED		"\x1b[31m"
 #define C_RESET		"\x1b[0m"
 

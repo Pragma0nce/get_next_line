@@ -7,36 +7,41 @@ int		get_next_line(const int fd, char **line)
 	int		i;
 	static	t_buffer buffer;
 	char	temp_buffer[BUFF_SIZE + 1];
+	char	*cpy_buffer;
 
 	while (ret = read(fd, &temp_buffer, BUFF_SIZE) )
 	{
+
 		temp_buffer[ret] = '\0';
 		printf("read %d characters. \n", ret);
 		push_to_buffer(&buffer, temp_buffer, ret);
-		// Check if the buffer contains a \n
-		i = 0;
-		while (buffer.data[i])
-		{
-			if (buffer.data[i] == '\n')
-			{
-				buffer.data[i] = '\0';
-				*line = (char*)malloc(sizeof(char) * i);
-				ft_strcpy(*line, buffer.data);
-				buffer.data[i] = '\n';
-				// Pushing the leftovers to the buffer
-				if (ret == BUFF_SIZE)
-				{
-					ft_strcpy(temp_buffer, &buffer.data[i + 1]);
-					flush_buffer(&buffer);	
-					printf("pushing the leftovers.\n");
-					push_to_buffer(&buffer, temp_buffer, ft_strlen(temp_buffer));
-				}
-				printf("returning line: \"%s\"\n", *line);
-				return (1);
-			}
-			i++;
-		}	
+		if (ft_strchr(temp_buffer, '\n'))
+			break;
 	}
+
+	// Check if the buffer contains a \n
+	i = 0;
+	while (buffer.data[i])
+	{
+		if (buffer.data[i] == '\n')
+		{
+			buffer.data[i] = '\0';
+			*line = (char*)malloc(sizeof(char) * i);
+			ft_strcpy(*line, buffer.data);
+			buffer.data[i] = '\n';
+
+			// Pushing the leftovers to the buffer
+			cpy_buffer = (char*)malloc(sizeof(char) * buffer.size);
+			ft_strcpy(cpy_buffer, &(buffer.data[i + 1]));
+			flush_buffer(&buffer);	
+			printf("pushing the leftovers.\n");
+			push_to_buffer(&buffer, cpy_buffer, ft_strlen(cpy_buffer));
+			free(cpy_buffer);
+			printf("returning line: \"%s\"\n", *line);
+			return (1);
+		}
+		i++;
+	}	
 
 	return (0);
 }
@@ -44,7 +49,7 @@ int		get_next_line(const int fd, char **line)
 void	flush_buffer(t_buffer *buffer)
 {
 	printf("flushing the buffer.\n");
-	bzero(buffer->data, buffer->size);
+	ft_bzero(buffer->data, buffer->size);
 	free(buffer->data);
 	buffer->size = 0;
 }
@@ -68,6 +73,7 @@ void	resize_buffer(t_buffer *buffer, int size)
 	{
 		buffer->size = size + 1;
 		buffer->data = (char*)malloc(sizeof(char) * (buffer->size));
+		ft_bzero(buffer->data, buffer->size);
 	}
 	else
 	{
